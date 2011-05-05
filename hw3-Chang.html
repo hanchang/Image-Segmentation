@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<title>CS585 - Homework 3: Image Segmentation</title>
+	<style type="text/css">
+		h1, h2, h3 {
+			margin-bottom: -10px;
+		}
+		img {
+			border: 1px solid #000;
+		}
+	</style>
+</head>
+
+<body>
+
+<div style="width: 500px; margin-left: auto; margin-right: auto;">
+	<div style="float:left">
+		<img src="img/bu-logo.gif" alt="BU Logo" style="border: none">
+	</div>
+	<div style="float:right; font-size:1.2em; padding-top: 30px; 
+			height: 120px; text-align: center;">
+		Szu Han Chang (halo@cs.bu.edu) <br>
+		CS 585 - Computer Vision <br>
+		Homework Assignment 3 <br>
+	</div>
+</div>
+
+<div style="clear:both; width: 900px; margin-left: auto; margin-right: auto;">
+	<center>
+	<h1>Image Segmentation</h1>
+	</center>
+
+	<h2>Problem Definition</h2>
+	<hr>
+	<p>
+	The assignment is to use various techniques to segment pictures of cells 
+	into binary images and perform analysis on them to find out their size, 
+	orientation, and circularity.
+	</p>
+
+	<p>
+	This is useful for automating cell detection and classification which is 
+	currently a tediously time consuming process for biomedical applications.
+	</p>
+	
+	<h2>Compiling and Running</h2>
+	<hr>
+	<h3>Compiling</h3>
+	<p>
+	This program was written and compiled on csa3 using g++.
+	</p>
+
+	<p>
+	On the command line, type in <br>
+	<span style="background: #000; color: #FFF;"> 
+		<tt> $ make </tt>
+	</span>
+	<br>
+	to compile all the C code into an executable called <b>hw3-Chang</b>.
+	</p>
+
+	<h3>Running</h3>
+	<p>
+	To run the program, type in <br>
+	<span style="background: #000; color: #FFF;"> 
+		<tt>$ ./hw3-Chang input.ppm</tt> 
+	</span>
+	<br>
+	</p>
+
+	<h3>Code</h3>
+	<p>
+	This code uses the original vision.c and vision.h files as well as an 
+	additional helper file called helpers.c which contains the various 
+	functions I implemented to perform segmentation and analysis.
+	</p>
+
+	<p>
+	View the source code for the program: 
+	<br>
+	<a href="hw3-Chang.c">hw3-Chang.c</a>
+	<br>
+	<a href="helpers.c">helpers.c</a>
+	<br>
+	<a href="vision.c">vision.c</a>
+	<br>
+	<a href="vision.h">vision.h</a>
+	</p>
+
+	<h2>Algorithm Design</h2>
+	<hr>
+	<h3>Segmentation</h3>
+
+	<br>
+	<img src="img/segment.gif">
+
+	<p>
+	The segmentation algorithm chosen was peakiness detection, because its  
+	flexibility and relative ease of implementation. It performed rather well
+	but only after some tweaks, listed below. 
+	</p>
+
+	<p>
+	First, a range of minimum distances between highest and second highest 
+	pixels was used (2 to 32) and the highest peakiness was chosen from there.
+	This range was chosen after trial and error experimentation.
+	<br>
+	Also, to remove the numerical labels assigned to the cells as well as the 
+	halos surrounding the cells, a normalization filter was applied to the 
+	images, which blended in any pixels that were within a close brightness
+	value to the highest and lowest brightness values in the image.
+	</p>
+
+	<p>
+	After finding the maximum peakiness, the stored brightness value yielding
+	that max was used as the threshold.
+	</p>
+
+	<h3>Area</h3>
+	<br>
+	<img src="img/area.gif">
+
+	<p>
+	Area was simple to calculate; after obtaining a binary image, the number of
+	black pixels was counted up and output as the area.
+	</p>
+
+	<h3>Orientation</h3>
+	<br>
+	<img src="img/orientation.gif">
+
+	<p>
+	The orientation of the cell was calculated as the angle counter-clockwise 
+	with respect to the y axis of the cell, in degrees. 
+	</p>
+
+	<h3>Circularity</h3>
+	<br>
+	<img src="img/circularity.gif">
+
+	<p>
+	The circularity algorithm selected was the ratio of Axis of Least Inertia
+	to Axis of Most Inertia.
+	</p>
+
+	<h3>Labeling</h3>
+	<p>
+	The labeling algorithm goes through the binary image and marks each
+	unmarked black pixel with a different color and recurses on its 8 neighbors 
+	until no more neighbors remain. Then it loops to the next unmarked pixel,
+	repeating until no more unmarked black pixels remain.
+	</p>
+
+	<h3>Blur</h3>
+	<p>
+	A slight blurring was implemented to even out cell pixel brightness vs 
+	background pixel brightness in an attempt to create a good threshold that 
+	separates them cleanly. 
+	</p>	
+
+	The blur mask used was <br>
+	<img src="img/blur.gif" style="border: none">
+	<br>
+
+	<h3>Region Merging</h3>
+	<p>
+	No region merging algorithm was used due to lack of time; however, a 
+	function was implemented that removed any pixel group with an area less 
+	than 100 pixels. This helped eliminate any remaining noise that the blur 
+	and the threshold missed.
+	</p>
+
+	<h3>Two Celled Images</h3>
+	<p>
+	For any images with two cells, I chose to split the image in half and 
+	analyze each half separately, then combine the output. This gives a much 
+	more accurate analysis when using peakiness segmentation since each cell
+	gets a different threshold, helping accentuate its differences from the 
+	ambient background.
+	</p>
+
+
+	<h2>Results and Conclusion</h2>
+	<hr>
+	<p>
+	Overall, the system worked fairly well on the images with a clear and 
+	distinct brightness difference between the cells and the background, 
+	because it was highly dependent on the peakiness algorithm to segment the
+	image successfully; if the segmentation was not clean, the other algorithms
+	would have much higher rates of error. 
+	</p>
+
+	<p>
+	As a result, the first three images yielded a respectable binary
+	representation of the cells in the picture. However, the fourth image did
+	not yield a threshold that separated the cells from the background. Only
+	the small dark particles within each cell's nucleus were detected, and
+	those were removed from the image by the "region merging" 
+	algorithm. The cells are virtually transparent; using an edge detection 
+	modified for segmentation would have been a better approach for them.
+	</p>
+
+	<h3>Ground Truth</h3>
+	<br>
+	<table cellspacing="2" cellpadding="5">
+		<tr>
+			<th>Cell</th>
+			<td>Cell 1</td>
+			<td>Cell 2</td>
+			<td>Cell 3</td>
+			<td>Cell 4</td>
+			<td>Cell 5</td>
+			<td>Cell 6</td>
+			<td>Cell 7</td>
+		</tr>
+		<tr>
+			<th>Area</td>
+			<td>1817.7 um<sup>2</sup></td>
+			<td>1929.9 um<sup>2</sup></td>
+			<td>2736.6 um<sup>2</sup></td>
+			<td>1616.9 um<sup>2</sup></td>
+			<td>808.9 um<sup>2</sup></td>
+			<td>3973.7 um<sup>2</sup></td>
+			<td>2764.6 um<sup>2</sup></td>
+		</tr>
+		<tr>
+			<th>Orientation</td>
+			<td>-32.6 &deg;</td>
+			<td>-30.9 &deg;</td>
+			<td>-7.1 &deg;</td>
+			<td>22.7 &deg;</td>
+			<td>-32.7 &deg;</td>
+			<td>-37.6 &deg;</td>
+			<td>14.2 &deg;</td>
+		</tr>
+		<tr>
+			<th>Circularity</td>
+			<td>?</td>
+			<td>?</td>
+			<td>?</td>
+			<td>?</td>
+			<td>?</td>
+			<td>?</td>
+			<td>?</td>
+		</tr>
+		<tr>
+			<th>Components</td>
+			<td>1</td>
+			<td>2</td>
+			<td>2</td>
+			<td>2</td>
+			<td>2</td>
+			<td>2</td>
+			<td>2</td>
+		</tr>
+	</table>
+	<img src="img/img1.gif" height="125"> 
+	<img src="img/img2.gif" height="125">
+	<img src="img/img3.gif" height="125">
+	<img src="img/img4.gif" height="125">
+	<br>
+
+	<h3>Experimental</h3>
+	<br>
+	<table cellspacing="2" cellpadding="5">
+		<tr>
+			<th>Cell</th>
+			<td>Cell 1</td>
+			<td>Cell 2</td>
+			<td>Cell 3</td>
+			<td>Cell 4</td>
+			<td>Cell 5</td>
+			<td>Cell 6</td>
+			<td>Cell 7</td>
+		</tr>
+		<tr>
+			<th>Area</td>
+			<td>2122.5 um<sup>2</sup></td>
+			<td>684.7 um<sup>2</sup></td>
+			<td>1182.9 um<sup>2</sup></td>
+			<td>912.8 um<sup>2</sup></td>
+			<td>1008.2 um<sup>2</sup></td>
+			<td>0 um<sup>2</sup></td>
+			<td>0 um<sup>2</sup></td>
+		</tr>
+		<tr>
+			<th>Orientation</td>
+			<td>-35.1 &deg;</td>
+			<td>-27.8 &deg;</td>
+			<td>-14.2 &deg;</td>
+			<td>20.5 &deg;</td>
+			<td>-33.2 &deg;</td>
+			<td>0 &deg;</td>
+			<td>0 &deg;</td>
+		</tr>
+		<tr>
+			<th>Circularity</td>
+			<td>0.007118</td>
+			<td>0.055734</td>
+			<td>0.006517</td>
+			<td>0.076788</td>
+			<td>0.002760</td>
+			<td>0</td>
+			<td>0</td>
+		</tr>
+		<tr>
+			<th>Components</td>
+			<td>8</td>
+			<td>38</td>
+			<td>38</td>
+			<td>21</td>
+			<td>21</td>
+			<td>43</td>
+			<td>43</td>
+		</tr>
+	</table>
+	
+	<a href="img/binary1.gif"><img src="img/binary1.gif" height="160"></a>
+	<a href="img/binary2.gif"><img src="img/binary2.gif" height="160"></a>
+	<a href="img/binary3.gif"><img src="img/binary3.gif" height="160"></a>
+	<br>
+	<a href="img/connected1.gif"><img src="img/connected1.gif" height="160"></a>
+	<a href="img/connected2.gif"><img src="img/connected2.gif" height="160"></a>
+	<a href="img/connected3.gif"><img src="img/connected3.gif" height="150"></a>
+	<br>
+
+	<h3>Error</h3>
+	<br>
+	The percent error for the results obtained are as follows:
+	<br>
+	<img src="img/error.gif">
+
+	<p>
+	The area calculations suffered from the peakiness algorithm not correctly 
+	segmenting the pictures into binary images. However, by obtaining the
+	general shape of the cells, the peakiness segmentation algorithm was able 
+	to still generate the approximate shape of the cell, leading to a much 
+	better calculation of the orientation.
+	</p>
+
+	<p>
+	No error analysis could be performed on the circularity since no ground 
+	truth was given, but the values seem consistent since none of the detected
+	cells have a particularly round shape.
+	</p>
+
+	<h3>Possible Improvements</h3>
+	<p>
+	Implementing these algorithms was not difficult, but my lack of modularity 
+	in the beginning was an expensive mistake to make because it made debugging 
+	more difficult than necessary. Splitting up each algorithm into a function 
+	made the implementation much more modular and easier to handle, which is 
+	what I should have done to start off with.
+	</p>
+
+	<p>
+	The peakiness segmentation algorithm was too simplistic to cleanly handle 
+	the cell pictures; an edge detection algorithm modified for segmentation 
+	would have been a better idea, especially since there was great difficulty
+	in adjusting the peakiness algorithm to ignore the numbers and the white 
+	halos surrounding the cells. I wish we were given the algorithm for the 
+	Canny edge detection algorithm; it looked to be very effective, although 
+	quite complex.
+	</p>
+
+	<p>
+	An edge detection segmenter would have also stood a better chance against 
+	the fourth image, since those cells are outlined but have the same
+	brightness as the background.
+	</p>
+
+	<p>
+	Using an actual region merging algorithm instead of speck removal would not 
+	have been particularly helpful since the peakiness results did not yield 
+	large chunks of separate components, but instead just one large component 
+	and small specks throughout the image where the threshold failed to segment
+	correctly.
+	</p>
+
+	<p>
+	More adjustments on the type of blur and the amount used might have smoothed
+	out some of the images to obtain a less speckled binary image after running 
+	the peakiness segmenter.
+	</p>
+
+
+	<div style="height: 20px;"></div>
+</div>
+
+</body>
+</html>
